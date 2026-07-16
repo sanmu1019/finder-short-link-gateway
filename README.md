@@ -219,7 +219,8 @@ WXSPH_HOST_PORT=8787
 curl.exe http://127.0.0.1:8787/health
 ```
 
-不需要解析视频信息时，不要配置 Cookie，也不要启动该组件。
+启用该组件时必须配置 `WXSPH_API_KEYS`。不需要解析视频信息时，不要配置 Cookie，
+也不要启动该组件。
 
 ## 可选 Docker 或 VPS 部署
 
