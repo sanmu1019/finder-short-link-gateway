@@ -1,0 +1,66 @@
+services:
+  finder-gateway:
+    build:
+      context: ./finder_gateway
+    restart: unless-stopped
+    environment:
+      FINDER_API_KEY: ${FINDER_API_KEY}
+      FINDER_VNC_PASSWORD: ${FINDER_VNC_PASSWORD}
+      FINDER_PAGE_URL: ${FINDER_PAGE_URL:-https://channels.weixin.qq.com/platform/}
+      FINDER_BROWSER_HEADLESS: ${FINDER_BROWSER_HEADLESS:-false}
+      FINDER_REQUEST_TIMEOUT: ${FINDER_REQUEST_TIMEOUT:-25}
+      FINDER_STARTUP_TIMEOUT: ${FINDER_STARTUP_TIMEOUT:-45}
+      FINDER_PROFILE_DIR: /data/chromium-profile
+      FINDER_BIND_HOST: 0.0.0.0
+      FINDER_PORT: 8790
+      DISPLAY: ":99"
+    ports:
+      - "127.0.0.1:${FINDER_GATEWAY_PORT:-8790}:8790"
+      - "127.0.0.1:${FINDER_NOVNC_PORT:-6080}:6080"
+    volumes:
+      - ./data/chromium-profile:/data/chromium-profile
+    shm_size: "1gb"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - --fail
+        - --silent
+        - http://127.0.0.1:8790/health
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  wxsph-api:
+    profiles:
+      - wxsph
+    build:
+      context: ./wxsph_api
+    restart: unless-stopped
+    environment:
+      WXSPH_API_KEYS: ${WXSPH_API_KEYS:-}
+      WXSPH_COOKIE: ${WXSPH_COOKIE:-}
+      WXSPH_COOKIES: ${WXSPH_COOKIES:-}
+      WXSPH_TIMEOUT: ${WXSPH_TIMEOUT:-18}
+      WXSPH_DEBUG: ${WXSPH_DEBUG:-false}
+      WXSPH_RATE_LIMIT_PER_MIN: ${WXSPH_RATE_LIMIT_PER_MIN:-30}
+      WXSPH_CACHE_TTL: ${WXSPH_CACHE_TTL:-600}
+      WXSPH_TRUST_PROXY: ${WXSPH_TRUST_PROXY:-true}
+      WXSPH_HOST: 0.0.0.0
+      WXSPH_PORT: 8787
+      WXSPH_CACHE_FILE: /app/data/wxsph_cache.json
+    ports:
+      - "127.0.0.1:${WXSPH_HOST_PORT:-8787}:8787"
+    volumes:
+      - ./data/wxsph:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/health', timeout=3)"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
